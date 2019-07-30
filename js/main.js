@@ -1,7 +1,12 @@
 'use strict';
 
 var OFFERS_COUNT = 8;
-var OFFER_TYPES = ['palace', 'flat', 'house', 'bungalo'];
+var offerTypesToMinPrice = {
+  'bungalo': 0,
+  'flat': 1000,
+  'house': 5000,
+  'palace': 10000,
+};
 
 var Pin = {
   WIDTH: 50,
@@ -24,6 +29,10 @@ var mapFormFields = mapForm.querySelectorAll('select, fieldset');
 var adForm = document.querySelector('.ad-form');
 var adFormFields = adForm.querySelectorAll('fieldset');
 var adFormAddressInput = adForm.querySelector('#address');
+var adFormTypeSelect = adForm.querySelector('#type');
+var adFormPriceInput = adForm.querySelector('#price');
+var adFormTimeInSelect = adForm.querySelector('#timein');
+var adFormTimeOutSelect = adForm.querySelector('#timeout');
 
 var MapScope = {
   X: {
@@ -50,7 +59,7 @@ var generationOffer = function (id) {
       avatar: 'img/avatars/user0' + (id + 1) + '.png',
     },
     offer: {
-      type: getRandomItem(OFFER_TYPES),
+      type: getRandomItem(Object.keys(offerTypesToMinPrice)),
     },
     location: {
       x: getRandomNumber(MapScope.X.MIN, MapScope.X.MAX),
@@ -102,6 +111,10 @@ var activatePage = function () {
   for (var i = 0; i < mapFormFields.length; i++) {
     mapFormFields[i].disabled = false;
   }
+
+  adFormTypeSelect.addEventListener('change', onAdFormPriceInputChange);
+  adFormTimeInSelect.addEventListener('change', onAdFormTimeOutSelectChange);
+  adFormTimeOutSelect.addEventListener('change', onAdFormTimeInSelectChange);
 };
 
 var deactivatePage = function () {
@@ -115,6 +128,10 @@ var deactivatePage = function () {
   for (var i = 0; i < mapFormFields.length; i++) {
     mapFormFields[i].disabled = true;
   }
+
+  adFormTypeSelect.removeEventListener('change', onAdFormPriceInputChange);
+  adFormTimeInSelect.removeEventListener('change', onAdFormTimeOutSelectChange);
+  adFormTimeOutSelect.removeEventListener('change', onAdFormTimeInSelectChange);
 };
 
 var getMapMainPinButtonPosition = function () {
@@ -132,6 +149,20 @@ var onMapMainPinButton = function () {
   activatePage();
   renderPins(mapPins, getOffers(OFFERS_COUNT));
   mapMainPinButton.removeEventListener('click', onMapMainPinButton);
+};
+
+var onAdFormPriceInputChange = function (evt) {
+  var minPrice = offerTypesToMinPrice[evt.target.value];
+  adFormPriceInput.min = minPrice;
+  adFormPriceInput.placeholder = minPrice;
+};
+
+var onAdFormTimeInSelectChange = function () {
+  adFormTimeInSelect.value = adFormTimeOutSelect.value;
+};
+
+var onAdFormTimeOutSelectChange = function () {
+  adFormTimeOutSelect.value = adFormTimeInSelect.value;
 };
 
 deactivatePage();
