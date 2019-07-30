@@ -8,9 +8,22 @@ var Pin = {
   HEIGHT: 70,
 };
 
+var MainPin = {
+  WIDTH: 65,
+  HEIGHT: 65,
+};
+
 var map = document.querySelector('.map');
 var mapPins = document.querySelector('.map__pins');
-var mapPin = document.querySelector('#pin').content.querySelector('.map__pin');
+var mapMainPinButton = mapPins.querySelector('.map__pin--main');
+var mapPinOffer = document.querySelector('#pin').content.querySelector('.map__pin');
+
+var mapForm = map.querySelector('.map__filters');
+var mapFormFields = mapForm.querySelectorAll('select, fieldset');
+
+var adForm = document.querySelector('.ad-form');
+var adFormFields = adForm.querySelectorAll('fieldset');
+var adFormAddressInput = adForm.querySelector('#address');
 
 var MapScope = {
   X: {
@@ -57,7 +70,7 @@ var getOffers = function (count) {
 };
 
 var createPin = function (offer) {
-  var pin = mapPin.cloneNode(true);
+  var pin = mapPinOffer.cloneNode(true);
   var image = pin.querySelector('img');
 
   pin.style.left = (offer.location.x - Pin.WIDTH / 2) + 'px';
@@ -78,5 +91,49 @@ var renderPins = function (target, pins) {
   target.appendChild(fragment);
 };
 
-map.classList.remove('map--faded');
-renderPins(mapPins, getOffers(OFFERS_COUNT));
+var activatePage = function () {
+  map.classList.remove('map--faded');
+  adForm.classList.remove('ad-form--disabled');
+
+  for (var i = 0; i < adFormFields.length; i++) {
+    adFormFields[i].disabled = false;
+  }
+
+  for (var i = 0; i < mapFormFields.length; i++) {
+    mapFormFields[i].disabled = false;
+  }
+};
+
+var deactivatePage = function () {
+  map.classList.add('map--faded');
+  adForm.classList.add('ad-form--disabled');
+
+  for (var i = 0; i < adFormFields.length; i++) {
+    adFormFields[i].disabled = true;
+  }
+
+  for (var i = 0; i < mapFormFields.length; i++) {
+    mapFormFields[i].disabled = true;
+  }
+};
+
+var getMapMainPinButtonPosition = function () {
+  return {
+    x: mapMainPinButton.offsetLeft + Math.ceil(MainPin.WIDTH / 2),
+    y: mapMainPinButton.offsetTop + Math.ceil(MainPin.HEIGHT / 2),
+  };
+};
+
+var renderAdFormAddress = function (location) {
+  adFormAddressInput.value = location.x + ', ' + location.y;
+};
+
+var onMapMainPinButton = function () {
+  activatePage();
+  renderPins(mapPins, getOffers(OFFERS_COUNT));
+  mapMainPinButton.removeEventListener('click', onMapMainPinButton);
+};
+
+deactivatePage();
+renderAdFormAddress(getMapMainPinButtonPosition());
+mapMainPinButton.addEventListener('click', onMapMainPinButton);
