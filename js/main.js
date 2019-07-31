@@ -2,10 +2,10 @@
 
 var OFFERS_COUNT = 8;
 var offerTypesToMinPrice = {
-  'bungalo': 0,
-  'flat': 1000,
-  'house': 5000,
-  'palace': 10000,
+  bungalo: 0,
+  flat: 1000,
+  house: 5000,
+  palace: 10000,
 };
 
 var Pin = {
@@ -20,7 +20,7 @@ var MainPin = {
 
 var map = document.querySelector('.map');
 var mapPins = document.querySelector('.map__pins');
-var mapMainPinButton = mapPins.querySelector('.map__pin--main');
+var mapMainPin = mapPins.querySelector('.map__pin--main');
 var mapPinOffer = document.querySelector('#pin').content.querySelector('.map__pin');
 
 var mapForm = map.querySelector('.map__filters');
@@ -44,6 +44,8 @@ var MapScope = {
     MAX: 630,
   },
 };
+
+var mapActive = false;
 
 var getRandomNumber = function (min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
@@ -101,15 +103,16 @@ var renderPins = function (target, pins) {
 };
 
 var activatePage = function () {
+  mapActive = true;
   map.classList.remove('map--faded');
   adForm.classList.remove('ad-form--disabled');
 
-  for (var i = 0; i < adFormFields.length; i++) {
-    adFormFields[i].disabled = false;
-  }
-
   for (var i = 0; i < mapFormFields.length; i++) {
     mapFormFields[i].disabled = false;
+  }
+
+  for (var j = 0; j < adFormFields.length; j++) {
+    adFormFields[j].disabled = false;
   }
 
   adFormTypeSelect.addEventListener('change', onAdFormPriceInputChange);
@@ -118,15 +121,16 @@ var activatePage = function () {
 };
 
 var deactivatePage = function () {
+  mapActive = false;
   map.classList.add('map--faded');
   adForm.classList.add('ad-form--disabled');
 
-  for (var i = 0; i < adFormFields.length; i++) {
-    adFormFields[i].disabled = true;
-  }
-
   for (var i = 0; i < mapFormFields.length; i++) {
     mapFormFields[i].disabled = true;
+  }
+
+  for (var j = 0; j < adFormFields.length; j++) {
+    adFormFields[j].disabled = true;
   }
 
   adFormTypeSelect.removeEventListener('change', onAdFormPriceInputChange);
@@ -136,8 +140,8 @@ var deactivatePage = function () {
 
 var getMapMainPinButtonPosition = function () {
   return {
-    x: mapMainPinButton.offsetLeft + Math.ceil(MainPin.WIDTH / 2),
-    y: mapMainPinButton.offsetTop + Math.ceil(MainPin.HEIGHT / 2),
+    x: mapMainPin.offsetLeft + Math.ceil(MainPin.WIDTH / 2),
+    y: mapMainPin.offsetTop + Math.ceil(MainPin.HEIGHT / 2),
   };
 };
 
@@ -145,14 +149,9 @@ var renderAdFormAddress = function (location) {
   adFormAddressInput.value = location.x + ', ' + location.y;
 };
 
-var onMapMainPinButton = function () {
-  activatePage();
-  renderPins(mapPins, getOffers(OFFERS_COUNT));
-  mapMainPinButton.removeEventListener('click', onMapMainPinButton);
-};
-
 var onAdFormPriceInputChange = function (evt) {
   var minPrice = offerTypesToMinPrice[evt.target.value];
+
   adFormPriceInput.min = minPrice;
   adFormPriceInput.placeholder = minPrice;
 };
@@ -165,6 +164,48 @@ var onAdFormTimeOutSelectChange = function () {
   adFormTimeOutSelect.value = adFormTimeInSelect.value;
 };
 
+var coordinateLimit = function (coordinate, min, max) {
+  return Math.min(Math.max(coordinate, min), max);
+};
+
+var onMapMainPinDrag = function (evt) {
+  evt.preventDefault();
+
+  var start = {
+    x: mapMainPin.offsetLeft,
+    y: mapMainPin.offsetTop,
+  };
+
+  var onMouseMove = function (moveEvt) {
+    moveEvt.preventDefault();
+
+    if (mapActive === false) {
+      activatePage();
+      renderPins(mapPins, getOffers(OFFERS_COUNT));
+    }
+
+    var shift = {
+      x: moveEvt.clientX - evt.clientX,
+      y: moveEvt.clientY - evt.clientY,
+    };
+
+    mapMainPin.style.top = coordinateLimit(start.y + shift.y, MapScope.Y.MIN - MainPin.HEIGHT / 2, MapScope.Y.MAX - MainPin.HEIGHT / 2) + 'px';
+    mapMainPin.style.left = coordinateLimit(start.x + shift.x, MapScope.X.MIN - MainPin.WIDTH / 2, MapScope.X.MAX - MainPin.WIDTH / 2) + 'px';
+
+    renderAdFormAddress(getMapMainPinButtonPosition());
+
+    var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  document.addEventListener('mousemove', onMouseMove);
+};
+
 deactivatePage();
-renderAdFormAddress(getMapMainPinButtonPosition());
-mapMainPinButton.addEventListener('click', onMapMainPinButton);
+
+mapMainPin.addEventListener('mousedown', onMapMainPinDrag);
