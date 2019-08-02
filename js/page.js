@@ -2,20 +2,19 @@
 
 (function () {
   var activate = function () {
-    window.data.pageIsActive = true;
+    window.types.pageIsActive = true;
     window.form.activate();
-    window.data.map.classList.remove('map--faded');
+    window.map.activate();
   };
 
   var deactivate = function () {
-    window.data.pageIsActive = false;
+    window.types.pageIsActive = false;
     window.form.deactivate();
-    window.data.map.classList.add('map--faded');
+    window.map.deactivate();
   };
-
-  deactivate();
 
   window.page = {
     activate: activate,
+    deactivate: deactivate,
   };
 })();
