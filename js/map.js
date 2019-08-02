@@ -1,53 +1,44 @@
 'use strict';
 
 (function () {
-  var mapMainPin = window.pin.mapPins.querySelector('.map__pin--main');
+  var mapSection = document.querySelector('.map');
+  var mapPinsContainer = mapSection.querySelector('.map__pins');
+  var mapPinTemplate = document.querySelector('#pin').content.querySelector('.map__pin');
 
-  var coordinateLimit = function (coordinate, min, max) {
-    return Math.min(Math.max(coordinate, min), max);
+  var createPin = function (ad) {
+    var pin = mapPinTemplate.cloneNode(true);
+    var image = pin.querySelector('img');
+
+    pin.style.left = (ad.location.x - window.types.PinSize.RADIUS) + 'px';
+    pin.style.top = (ad.location.y - window.types.PinSize.HEIGHT) + 'px';
+    image.src = ad.author.avatar;
+    image.alt = ad.offer.type;
+
+    return pin;
   };
 
-  var onMapMainPinDrag = function (evt) {
-    evt.preventDefault();
+  var renderPins = function (pins) {
+    var fragment = document.createDocumentFragment();
 
-    var start = {
-      x: mapMainPin.offsetLeft,
-      y: mapMainPin.offsetTop,
-    };
+    for (var i = 0; i < pins.length; i++) {
+      fragment.appendChild(createPin(pins[i]));
+    }
 
-    var onMouseMove = function (moveEvt) {
-      moveEvt.preventDefault();
-
-      if (window.data.pageIsActive === false) {
-        window.page.activate();
-        window.pin.render(window.pin.mapPins, window.pin.getList(window.data.OFFERS_COUNT));
-      }
-
-      var shift = {
-        x: moveEvt.clientX - evt.clientX,
-        y: moveEvt.clientY - evt.clientY,
-      };
-
-      mapMainPin.style.top = coordinateLimit(start.y + shift.y, window.data.MapScope.Y.MIN - window.data.MainPin.HEIGHT / 2, window.data.MapScope.Y.MAX - window.data.MainPin.HEIGHT / 2) + 'px';
-      mapMainPin.style.left = coordinateLimit(start.x + shift.x, window.data.MapScope.X.MIN - window.data.MainPin.WIDTH / 2, window.data.MapScope.X.MAX - window.data.MainPin.WIDTH / 2) + 'px';
-
-      window.form.renderAddress(window.pin.getMapMainPinButtonPosition());
-
-      var onMouseUp = function (upEvt) {
-        upEvt.preventDefault();
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
-
-      document.addEventListener('mouseup', onMouseUp);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
+    mapPinsContainer.appendChild(fragment);
   };
 
-  mapMainPin.addEventListener('mousedown', onMapMainPinDrag);
+  var activate = function () {
+    mapSection.classList.remove('map--faded');
+  };
+
+  var deactivate = function () {
+    mapSection.classList.add('map--faded');
+  };
 
   window.map = {
-    mapMainPin: mapMainPin,
+    mapSection: mapSection,
+    renderPins: renderPins,
+    activate: activate,
+    deactivate: deactivate,
   };
 })();

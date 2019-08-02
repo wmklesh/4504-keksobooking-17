@@ -1,7 +1,7 @@
 'use strict';
 
 (function () {
-  var mapForm = window.data.map.querySelector('.map__filters');
+  var mapForm = window.map.mapSection.querySelector('.map__filters');
   var mapFormFields = mapForm.querySelectorAll('select, fieldset');
 
   var adForm = document.querySelector('.ad-form');
@@ -13,7 +13,7 @@
   var adFormTimeOutSelect = adForm.querySelector('#timeout');
 
   var onAdFormPriceInputChange = function (evt) {
-    var minPrice = window.pin.offerTypesToMinPrice[evt.target.value];
+    var minPrice = window.types.OfferTypesToMinPrice[evt.target.value];
 
     adFormPriceInput.min = minPrice;
     adFormPriceInput.placeholder = minPrice;
